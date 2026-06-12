@@ -1,0 +1,116 @@
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/500.css";
+@import "@fontsource/ibm-plex-mono/700.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --font-serif: var(--font-serif);
+
+  --color-background:         var(--background);
+  --color-foreground:         var(--foreground);
+  --color-card:               var(--card);
+  --color-card-foreground:    var(--card-foreground);
+  --color-popover:            var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary:            var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary:          var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted:              var(--muted);
+  --color-muted-foreground:   var(--muted-foreground);
+  --color-accent:             var(--accent);
+  --color-accent-foreground:  var(--accent-foreground);
+  --color-destructive:        var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border:             var(--border);
+  --color-input:              var(--input);
+  --color-ring:               var(--ring);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 4px);
+  --radius-xl: calc(var(--radius) + 8px);
+
+  --shadow-2xs: var(--shadow-2xs);
+  --shadow-xs:  var(--shadow-xs);
+  --shadow-sm:  var(--shadow-sm);
+  --shadow:     var(--shadow);
+  --shadow-md:  var(--shadow-md);
+  --shadow-lg:  var(--shadow-lg);
+  --shadow-xl:  var(--shadow-xl);
+  --shadow-2xl: var(--shadow-2xl);
+}
+
+/* ── Light ──────────────────────────────────────────────────────────────── */
+:root {
+  --font-sans:   "IBM Plex Mono", ui-monospace, monospace;
+  --font-mono:   "IBM Plex Mono", ui-monospace, monospace;
+  --font-serif:  "IBM Plex Mono", ui-monospace, monospace;
+  --radius:      0rem;
+  --tracking-normal: 0em;
+
+  --background:          oklch(0.9851 0 0);
+  --foreground:          oklch(0.1448 0 0);
+  --card:                oklch(0.9702 0 0);
+  --card-foreground:     oklch(0.1448 0 0);
+  --popover:             oklch(0.9851 0 0);
+  --popover-foreground:  oklch(0.1448 0 0);
+  --primary:             oklch(0.6996 0.2020 44.4414);
+  --primary-foreground:  oklch(0 0 0);
+  --secondary:           oklch(0.9219 0 0);
+  --secondary-foreground: oklch(0.1448 0 0);
+  --muted:               oklch(0.9401 0 0);
+  --muted-foreground:    oklch(0.4495 0 0);
+  --accent:              oklch(0.7512 0.1680 52.0772);
+  --accent-foreground:   oklch(0 0 0);
+  --destructive:         oklch(0.6280 0.2577 29.2339);
+  --destructive-foreground: oklch(0.9851 0 0);
+  --border:              oklch(0.8514 0 0);
+  --input:               oklch(0.8514 0 0);
+  --ring:                oklch(0.6996 0.2020 44.4414);
+
+  --shadow-2xs: 0 1px 2px 0px hsl(0 0% 0% / 0.04);
+  --shadow-xs:  0 1px 2px 0px hsl(0 0% 0% / 0.04);
+  --shadow-sm:  0 1px 2px 0px hsl(0 0% 0% / 0.08), 0 1px 2px -1px hsl(0 0% 0% / 0.08);
+  --shadow:     0 1px 2px 0px hsl(0 0% 0% / 0.08), 0 1px 2px -1px hsl(0 0% 0% / 0.08);
+  --shadow-md:  0 1px 2px 0px hsl(0 0% 0% / 0.08), 0 2px 4px -1px hsl(0 0% 0% / 0.08);
+  --shadow-lg:  0 1px 2px 0px hsl(0 0% 0% / 0.08), 0 4px 6px -1px hsl(0 0% 0% / 0.08);
+  --shadow-xl:  0 1px 2px 0px hsl(0 0% 0% / 0.08), 0 8px 10px -1px hsl(0 0% 0% / 0.08);
+  --shadow-2xl: 0 1px 2px 0px hsl(0 0% 0% / 0.20);
+}
+
+/* ── Dark ───────────────────────────────────────────────────────────────── */
+.dark {
+  --background:          oklch(0.1822 0 0);
+  --foreground:          oklch(0.9612 0 0);
+  --card:                oklch(0.2178 0 0);
+  --card-foreground:     oklch(0.9612 0 0);
+  --popover:             oklch(0.1822 0 0);
+  --popover-foreground:  oklch(0.9612 0 0);
+  --primary:             oklch(0.6996 0.2020 44.4414);
+  --primary-foreground:  oklch(0 0 0);
+  --secondary:           oklch(0.3211 0 0);
+  --secondary-foreground: oklch(0.9612 0 0);
+  --muted:               oklch(0.2686 0 0);
+  --muted-foreground:    oklch(0.7252 0 0);
+  --accent:              oklch(0.7512 0.1680 52.0772);
+  --accent-foreground:   oklch(0 0 0);
+  --destructive:         oklch(0.6280 0.2577 29.2339);
+  --destructive-foreground: oklch(0.9612 0 0);
+  --border:              oklch(0.3715 0 0);
+  --input:               oklch(0.3715 0 0);
+  --ring:                oklch(0.6996 0.2020 44.4414);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+    letter-spacing: var(--tracking-normal);
+  }
+}
