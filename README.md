@@ -1,10 +1,13 @@
-# Cronos — Extensão de Rastreamento de Tempo
+# Cronos — Extensão de Rastreamento de Tempo (em desenvolvimento)
 
 Extensão para Chrome que rastreia o tempo gasto em cada domínio navegado, semelhante ao WakaTime. Os dados ficam armazenados localmente no navegador e são exibidos em um popup com tema Terminal.
 
 > **v1** — rastreamento local apenas. Envio para API planejado para v2.
 
+<img width="498" height="551" alt="image" src="https://github.com/user-attachments/assets/e5e9c70f-9775-4601-ba1d-c8e3c699cad9" />
+
 ---
+
 
 ## Tecnologias
 
