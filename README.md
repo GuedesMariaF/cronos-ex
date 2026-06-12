@@ -1,6 +1,8 @@
 # Cronos — Extensão de Rastreamento de Tempo
 
-Extensão para Chrome que rastreia o tempo gasto em cada domínio navegado, semelhante ao WakaTime. Os dados são enviados para uma API backend e exibidos em um popup com tema Terminal.
+Extensão para Chrome que rastreia o tempo gasto em cada domínio navegado, semelhante ao WakaTime. Os dados ficam armazenados localmente no navegador e são exibidos em um popup com tema Terminal.
+
+> **v1** — rastreamento local apenas. Envio para API planejado para v2.
 
 ---
 
@@ -22,37 +24,31 @@ Extensão para Chrome que rastreia o tempo gasto em cada domínio navegado, seme
 ```
 cronos-web-ex/
 ├── entrypoints/
-│   ├── background.ts          # Service worker — captura e envia os dados
-│   ├── popup/
-│   │   ├── index.html
-│   │   ├── main.tsx
-│   │   ├── App.tsx            # UI do popup
-│   │   └── style.css
-│   └── options/
+│   ├── background.ts        # Service worker — captura e armazena os dados
+│   └── popup/
 │       ├── index.html
 │       ├── main.tsx
-│       ├── App.tsx            # Página de configurações
+│       ├── App.tsx          # UI do popup
 │       └── style.css
 ├── components/
-│   ├── ui/                    # Componentes base shadcn/ui
+│   ├── ui/                  # Componentes base shadcn/ui
 │   │   ├── button.tsx
 │   │   ├── input.tsx
 │   │   ├── card.tsx
 │   │   ├── badge.tsx
 │   │   ├── label.tsx
 │   │   └── separator.tsx
-│   ├── DomainRow.tsx          # Linha de domínio com barra de progresso
-│   ├── DomainList.tsx         # Lista de domínios
-│   ├── Header.tsx             # Cabeçalho com logo
-│   └── StatusBadge.tsx        # Indicador de sincronização
+│   ├── DomainRow.tsx        # Linha de domínio com barra de progresso
+│   ├── DomainList.tsx       # Lista de domínios
+│   ├── Header.tsx           # Cabeçalho com logo
+│   └── StatusBadge.tsx      # Indicador de modo (local)
 ├── hooks/
-│   ├── useTrackerData.ts      # Lê domainSeconds e heartbeatQueue do storage
-│   └── useConfig.ts           # Lê e salva configurações (userId, apiUrl, token)
+│   └── useTrackerData.ts    # Lê domainSeconds do storage e expõe para o popup
 ├── lib/
-│   ├── format.ts              # Formata segundos em "2h 30m", "5m 10s"
-│   └── utils.ts               # Utilitário cn() para classes Tailwind
+│   ├── format.ts            # Formata segundos em "2h 30m", "5m 10s"
+│   └── utils.ts             # Utilitário cn() para classes Tailwind
 ├── styles/
-│   └── theme.css              # Variáveis do tema Terminal (oklch)
+│   └── theme.css            # Variáveis do tema Terminal (oklch)
 ├── wxt.config.ts
 ├── tsconfig.json
 └── package.json
@@ -69,55 +65,34 @@ O service worker escuta eventos de navegação do Chrome:
 - **Troca de aba** → `chrome.tabs.onActivated`
 - **Navegação na mesma aba** → `chrome.tabs.onUpdated`
 - **Inicialização** → `chrome.tabs.query` detecta a aba já aberta
+- **Alarme a cada 1 min** → acumula tempo mesmo sem trocar de aba
 
-A cada evento, extrai o domínio da URL (`https://github.com/...` → `github.com`) e decide se grava um **heartbeat**:
+A cada evento, extrai o domínio da URL (`https://github.com/...` → `github.com`) e decide se registra um **heartbeat**:
 
 ```
-domínio mudou? → grava heartbeat imediatamente
-mesmo domínio há 30s? → grava heartbeat
-usuário ocioso (sem teclado/mouse por 60s)? → ignora
-página do sistema (chrome://, about:)? → ignora
+domínio mudou?                   → registra heartbeat imediatamente
+mesmo domínio há 30s?            → registra heartbeat
+usuário ocioso (60s sem input)?  → ignora
+página do sistema (chrome://)?   → ignora
 ```
+
+Cada heartbeat vale **30 segundos** acumulados no domínio.
 
 ### Armazenamento (chrome.storage.local)
 
-Dois valores são mantidos localmente:
+Um único objeto é mantido localmente:
 
 ```json
 {
-  "heartbeatQueue": [
-    { "url": "github.com", "timestamp": "2026-06-11T14:30:00.000Z" },
-    { "url": "youtube.com", "timestamp": "2026-06-11T14:31:00.000Z" }
-  ],
   "domainSeconds": {
-    "github.com": 90,
-    "youtube.com": 30
+    "github.com":  90,
+    "youtube.com": 30,
+    "notion.so":   120
   }
 }
 ```
 
-- `heartbeatQueue` — fila de eventos aguardando envio para a API
-- `domainSeconds` — tempo acumulado por domínio (exibido no popup)
-
-### Envio para a API
-
-Um alarme dispara a cada **1 minuto** e envia a fila para o backend:
-
-```http
-POST /api/time-spent
-Content-Type: application/json
-Authorization: Bearer <token>
-
-{
-  "user_id": "019e66f9-...",
-  "user_time_spent": [
-    { "url": "github.com",  "timestamp": "2026-06-11T14:30:00Z" },
-    { "url": "youtube.com", "timestamp": "2026-06-11T14:31:00Z" }
-  ]
-}
-```
-
-Após confirmação `200` da API, apenas os itens enviados são removidos da fila. Se houver falha de rede, os dados ficam guardados para a próxima tentativa.
+Os dados **persistem** mesmo quando o service worker é encerrado pelo Chrome. O popup lê diretamente esse objeto e se atualiza em tempo real via `chrome.storage.onChanged`.
 
 ---
 
@@ -131,7 +106,7 @@ Após confirmação `200` da API, apenas os itens enviados são removidos da fil
 
 ## Rodando localmente
 
-### 1. Clonar e instalar dependências
+### 1. Instalar dependências
 
 ```bash
 git clone <url-do-repositorio>
@@ -145,23 +120,17 @@ npm install
 npm run dev
 ```
 
-O WXT fica observando alterações e reconstrói automaticamente em `.output/chrome-mv3/`.
+O WXT observa alterações e reconstrói automaticamente em `.output/chrome-mv3/`.
 
-### 3. Carregar a extensão no Chrome
+### 3. Carregar no Chrome
 
 1. Abra `chrome://extensions`
 2. Ative **"Modo do desenvolvedor"** (canto superior direito)
 3. Clique em **"Carregar sem compactação"**
 4. Selecione a pasta `.output/chrome-mv3/`
+5. Navegue para qualquer site — os dados aparecem no popup após ~30 segundos
 
-### 4. Configurar a extensão
-
-1. Clique com o botão direito no ícone da extensão → **"Opções"**
-2. Preencha:
-   - **ID do Usuário** — identificador do colaborador no sistema
-   - **URL da API** — endereço do backend (ex: `http://127.0.0.1:8000/api/time-spent`)
-   - **Token Bearer** — opcional, para autenticação
-3. Clique em **Salvar**
+> Após cada `npm run build`, clique no ícone de **recarregar** da extensão em `chrome://extensions`.
 
 ---
 
@@ -170,30 +139,32 @@ O WXT fica observando alterações e reconstrói automaticamente em `.output/chr
 ```bash
 npm run dev       # Build em modo watch com hot reload
 npm run build     # Build de produção em .output/chrome-mv3/
-npm run zip       # Gera .zip pronto para publicação na Chrome Web Store
+npm run zip       # Gera .zip para publicação na Chrome Web Store
 npm run typecheck # Verifica erros de TypeScript sem buildar
 ```
 
 ---
 
-## Formato do payload enviado à API
+## Roadmap
 
-```typescript
-{
-  user_id: string,           // UUID do colaborador
-  user_time_spent: Array<{
-    url: string,             // domínio sem protocolo (ex: "github.com")
-    timestamp: string        // ISO 8601 (ex: "2026-06-11T14:30:00.000Z")
-  }>
-}
-```
+### v1 (atual)
+- [x] Rastreamento de tempo por domínio
+- [x] Detecção de ociosidade
+- [x] Popup com lista de domínios e tempo acumulado
+- [x] Persistência local com `chrome.storage`
+
+### v2 (planejado)
+- [ ] Login via web app — `userId` dinâmico por colaborador
+- [ ] Envio dos dados para API (`POST /api/time-spent`)
+- [ ] Autenticação via Bearer token
+- [ ] Página de configurações na extensão
 
 ---
 
 ## Observações técnicas
 
-**Service Worker MV3** — O background do Chrome pode ser encerrado após ~30 segundos sem eventos. As variáveis em memória são zeradas, mas os dados em `chrome.storage.local` são persistidos. A cada reinício, o worker detecta automaticamente a aba ativa.
+**Service Worker MV3** — O background pode ser encerrado após ~30s sem eventos. As variáveis em memória são zeradas, mas `chrome.storage.local` é persistido no disco. O alarme de 1 minuto garante que o worker seja reativado periodicamente para continuar acumulando tempo.
 
-**Modelo de heartbeat** — O tempo não é medido com precisão contínua. Cada heartbeat representa **30 segundos** de atividade (mesmo modelo do WakaTime). Se o usuário ficar em `github.com` por 5 minutos, serão registrados ~10 heartbeats = ~300 segundos.
+**Modelo de heartbeat** — O tempo é aproximado por pulsações de 30 segundos (mesmo modelo do WakaTime). 5 minutos em `github.com` = ~10 heartbeats = ~300 segundos registrados.
 
-**Idle detection** — Se o usuário ficar 60 segundos sem mover o mouse ou digitar, o rastreamento é pausado automaticamente.
+**Idle detection** — Sem interação de teclado ou mouse por 60 segundos, o rastreamento é pausado automaticamente.

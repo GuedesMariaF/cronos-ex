@@ -9,9 +9,8 @@ export default defineConfig({
   manifest: {
     name: "Cronos",
     version: "1.0.0",
-    description: "Contabiliza o tempo gasto em cada aba do navegador de forma segura.",
-    permissions: ["tabs", "storage", "alarms", "scripting", "idle"],
-    host_permissions: ["http://127.0.0.1/*", "https://*/*"],
+    description: "Rastreia o tempo gasto em cada domínio navegado.",
+    permissions: ["tabs", "storage", "alarms", "idle"],
   },
   browser: "chrome",
 });

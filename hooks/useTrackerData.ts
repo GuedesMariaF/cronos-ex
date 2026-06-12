@@ -8,26 +8,20 @@ export interface DomainEntry {
 interface TrackerData {
   entries: DomainEntry[];
   totalSeconds: number;
-  pendingCount: number;
 }
 
 export function useTrackerData(): TrackerData {
   const [entries, setEntries] = useState<DomainEntry[]>([]);
-  const [pendingCount, setPendingCount] = useState(0);
 
   function loadData() {
-    chrome.storage.local.get(
-      { domainSeconds: {}, heartbeatQueue: [] },
-      (result) => {
-        const sorted = Object.entries(result.domainSeconds as Record<string, number>)
-          .filter(([, s]) => s > 0)
-          .sort(([, a], [, b]) => b - a)
-          .map(([domain, seconds]) => ({ domain, seconds }));
+    chrome.storage.local.get({ domainSeconds: {} }, (result) => {
+      const sorted = Object.entries(result.domainSeconds as Record<string, number>)
+        .filter(([, s]) => s > 0)
+        .sort(([, a], [, b]) => b - a)
+        .map(([domain, seconds]) => ({ domain, seconds }));
 
-        setEntries(sorted);
-        setPendingCount((result.heartbeatQueue as unknown[]).length);
-      }
-    );
+      setEntries(sorted);
+    });
   }
 
   useEffect(() => {
@@ -41,5 +35,5 @@ export function useTrackerData(): TrackerData {
 
   const totalSeconds = entries.reduce((sum, e) => sum + e.seconds, 0);
 
-  return { entries, totalSeconds, pendingCount };
+  return { entries, totalSeconds };
 }

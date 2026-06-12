@@ -6,7 +6,7 @@ import { useTrackerData } from "../../hooks/useTrackerData";
 import { formatTime } from "../../lib/format";
 
 export default function App() {
-  const { entries, totalSeconds, pendingCount } = useTrackerData();
+  const { entries, totalSeconds } = useTrackerData();
 
   return (
     <Card className="w-80 border-0 shadow-none rounded-none min-h-[200px]">
@@ -21,7 +21,7 @@ export default function App() {
       </CardContent>
 
       <CardFooter className="pt-2 px-4 justify-end">
-        <StatusBadge pendingCount={pendingCount} />
+        <StatusBadge />
       </CardFooter>
     </Card>
   );
